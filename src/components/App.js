@@ -7,8 +7,8 @@ import Navbar from './Navbar'
 import Main from './Main'
 
 //Declare IPFS
-//const ipfsClient = require('ipfs-http-client')
-//const ipfs = ipfsClient({ host: 'ipfs.infura.io', port: 5001, protocol: 'https' }) // leaving out the arguments will default to these values
+const ipfsClient = require('ipfs-http-client')
+const ipfs = ipfsClient({ host: 'ipfs.infura.io', port: 5001, protocol: 'https' }) // leaving out the arguments will default to these values
 
 
 class App extends Component {
@@ -45,6 +45,13 @@ async loadBlockchainData() {
       const imagesCount = await decentragram.methods.imageCount().call()
       this.setState({ imagesCount })
 
+      for (var i = 1; i <= imagesCount; i++) {
+        const image = await decentragram.methods.images(i).call()
+        this.setState({
+          images: [...this.state.images, image]
+        })
+      }
+
       //this.setState ({loading: false})
 
       }else{
@@ -63,9 +70,27 @@ async loadBlockchainData() {
       this.setState({ buffer: Buffer(reader.result) })
       console.log('buffer', this.state.buffer)
     }
-  }      
+  }
+  uploadImage = description => {
+    console.log("Submitting file to ipfs...")
 
+    //adding file to the IPFS
+    ipfs.add(this.state.buffer, (error, result) => {
+      console.log('Ipfs result', result)
+      if(error) {
+        console.error(error)
+        return
+      }
 
+      this.setState({ loading: true })
+      this.state.decentragram.methods.uploadImage(result[0].hash, description).send({ from: this.state.account }).on('transactionHash', (hash) => {
+      this.setState({ loading: false })
+      })
+    })
+  }
+  
+
+     
   constructor(props) {
     super(props)
     this.state = {
@@ -84,7 +109,9 @@ async loadBlockchainData() {
           ? <div id="loader" className="text-center mt-5"><p>Loading...</p></div>
           : <Main
             // Code....
+            images={this.state.images}
             captureFile={this.captureFile}
+            uploadImage={this.uploadImage}
             />
           }
         }
