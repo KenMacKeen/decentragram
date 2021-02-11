@@ -45,6 +45,7 @@ async loadBlockchainData() {
       const imagesCount = await decentragram.methods.imageCount().call()
       this.setState({ imagesCount })
 
+      // Load Images
       for (var i = 1; i <= imagesCount; i++) {
         const image = await decentragram.methods.images(i).call()
         this.setState({
@@ -52,7 +53,12 @@ async loadBlockchainData() {
         })
       }
 
-      //this.setState ({loading: false})
+      // Sort images. Show highest tipped images first
+      this.setState({
+      images: this.state.images.sort((a,b) => b.tipAmount - a.tipAmount )
+      })
+      
+      this.setState({ loading: false})
 
       }else{
         window.alert('Decentragram contract not deployed to detected network')
@@ -88,7 +94,13 @@ async loadBlockchainData() {
       })
     })
   }
-  
+
+tipImageOwner(id, tipAmount) {
+    this.setState({ loading: true })
+    this.state.decentragram.methods.tipImageOwner(id).send({ from: this.state.account, value: tipAmount }).on('transactionHash', (hash) => {
+      this.setState({ loading: false })
+    })
+  }
 
      
   constructor(props) {
@@ -99,6 +111,10 @@ async loadBlockchainData() {
       images: [],
       loading: false
     }
+
+    this.uploadImage = this.uploadImage.bind(this)
+    this.tipImageOwner = this.tipImageOwner.bind(this)
+    this.captureFile = this.captureFile.bind(this)
   }
 
   render() {
@@ -112,6 +128,7 @@ async loadBlockchainData() {
             images={this.state.images}
             captureFile={this.captureFile}
             uploadImage={this.uploadImage}
+            tipImageOwner={this.tipImageOwner}
             />
           }
         }
