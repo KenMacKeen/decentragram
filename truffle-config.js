@@ -4,8 +4,8 @@ require('babel-polyfill');
 module.exports = {
   networks: {
     kovan: {
-      host: "localhost",
-      port: 8545,
+      host: "https://kovan.infura.io/v3/ce117a18c9514092a2ec7821a3b009b1",
+      port: "localhost",
       network_id: "42" // Kovan network id
     },
   },
